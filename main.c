@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+const char *blockString = "0.0.0.0 ";
+
+FILE *fopenHostsFile(int mode)
+{
+    switch(mode) 
+    {
+        case 0:
+        return fopen("/etc/hosts", "r");
+        case 1:
+        return fopen("/etc/hosts", "a");
+    }
+}
+
+/**
+ * Block a hosts using the hostsFile in FILE
+ */
+void blockHost(FILE *hostsFile, char *host)
+{
+    // Buffer to hold our block rule.
+    char blockRule[256];
+
+    // Copy the blockstring and host to the blockrule.
+    strcpy(blockRule, blockString);
+    strcat(blockRule, host);
+    strcat(blockRule, "\n");
+
+    // Add a null terminator..
+    blockRule[strlen(blockRule)] = 0;
+    fputs(blockRule, hostsFile);
+}
+
+/**
+ * Entrypoint.
+ */
+int main(int argc, char **argv)
+{
+    FILE *hostsFile = NULL;
+
+    if (getuid() != 0) 
+    {
+        fprintf(stderr, "hb: Must run as root using sudo!\n");
+    }
+
+    for (int i = 0; i < argc; i++) 
+    {
+        if (strcmp(argv[i], "add") == 0) 
+        {
+            hostsFile = fopenHostsFile(1);
+            blockHost(hostsFile, argv[i+1]);
+        }
+        else if (strcmp(argv[i], "delete") == 0)
+        {
+            fprintf(stdout, "Soon to be implemented!\n");
+        }
+    }
+
+    if (hostsFile != NULL)
+        fclose(hostsFile);
+}
