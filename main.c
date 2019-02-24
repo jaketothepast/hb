@@ -35,6 +35,12 @@ void blockHost(FILE *hostsFile, char *host)
     fputs(blockRule, hostsFile);
 }
 
+void usage()
+{
+    fprintf(stdout, "Usage: ");
+    fprintf(stdout, "hb [add] <sitename>\n");
+}
+
 /**
  * Entrypoint.
  */
@@ -57,6 +63,11 @@ int main(int argc, char **argv)
         else if (strcmp(argv[i], "delete") == 0)
         {
             fprintf(stdout, "Soon to be implemented!\n");
+        }
+        else if (strcmp(argv[i], "-h") == 0)
+        {
+            usage();
+            exit(0);
         }
     }
 
