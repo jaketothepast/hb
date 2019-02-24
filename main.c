@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 const char *blockString = "0.0.0.0 ";
 
@@ -41,6 +42,24 @@ void usage()
     fprintf(stdout, "hb [add] <sitename>\n");
 }
 
+void showHosts()
+{
+    pid_t child = fork();
+    int rc = 0;
+    char * argv[] = {
+        "/etc/hosts"
+    };
+
+    if (child == 0)
+    {
+        execv("/bin/cat", argv);
+    }
+    else
+    {
+        rc = wait(NULL);
+    }
+}
+
 /**
  * Entrypoint.
  */
@@ -68,6 +87,10 @@ int main(int argc, char **argv)
         {
             usage();
             exit(0);
+        }
+        else
+        {
+            showHosts();
         }
     }
 
