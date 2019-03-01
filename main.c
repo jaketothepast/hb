@@ -46,13 +46,12 @@ void showHosts()
 {
     pid_t child = fork();
     int rc = 0;
-    char * argv[] = {
-        "/etc/hosts"
-    };
+
+    char *const parmList[] = {"/bin/cat", "/etc/hosts", NULL};
 
     if (child == 0)
     {
-        execv("/bin/cat", argv);
+        execv("/bin/cat", parmList);
     }
     else
     {
@@ -88,7 +87,7 @@ int main(int argc, char **argv)
             usage();
             exit(0);
         }
-        else
+        else if (strcmp(argv[i], "show") == 0)
         {
             showHosts();
         }
