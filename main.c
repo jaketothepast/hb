@@ -71,11 +71,11 @@ void readToHost(char *host, FILE *hostsFile)
   while ((fgets(buf, 256, hostsFile)) != NULL)
     {
       ptr = strcasestr(host, buf);
-      if (ptr != NULL)
+      if (ptr != NULL) {
         break;
+        printf("FOUND IT\n");
+      }
     }
-
-  // FILE should be read to the host itself.
 }
 
 /**
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 {
     FILE *hostsFile = NULL;
 
-    if (getuid() != 0) 
+    if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
     }
@@ -97,6 +97,10 @@ int main(int argc, char **argv)
             hostsFile = fopenHostsFile(1);
             blockHost(hostsFile, argv[i+1]);
         }
+        else if (strcmp(argv[i], "edit") == 0)
+          {
+            readToHost(argv[i+1], hostsFile);
+          }
         else if (strcmp(argv[i], "delete") == 0)
         {
             fprintf(stdout, "Soon to be implemented!\n");
