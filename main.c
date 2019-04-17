@@ -85,6 +85,16 @@ int main(int argc, char **argv)
 {
     FILE *hostsFile = NULL;
 
+    pid_t pid;
+
+    pid = fork();
+
+    if (pid > 0) {
+      return 0;
+    }
+
+
+    /**
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
@@ -118,4 +128,5 @@ int main(int argc, char **argv)
 
     if (hostsFile != NULL)
         fclose(hostsFile);
+    **/
 }
