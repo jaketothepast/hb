@@ -5,6 +5,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+/**
+ * TODO - daemonize, add in reading of config file,
+ *        block sites within a certain time limit.
+ */
 const char *blockString = "0.0.0.0 ";
 
 FILE *fopenHostsFile(int mode)
@@ -57,6 +61,21 @@ void showHosts()
     {
         rc = wait(NULL);
     }
+}
+
+void readToHost(char *host, FILE *hostsFile)
+{
+  char buf[256];
+  char *ptr;
+
+  while ((fgets(buf, 256, hostsFile)) != NULL)
+    {
+      ptr = strcasestr(host, buf);
+      if (ptr != NULL)
+        break;
+    }
+
+  // FILE should be read to the host itself.
 }
 
 /**

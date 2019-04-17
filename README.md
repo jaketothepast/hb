@@ -14,3 +14,4 @@ I would like to get better with C, and will be using C much more in the near fut
 2. Daemonize this program to be started up by systemd.
     - As part of daemonization, remember and remove added hosts on teardown.
 3. Log dns requests that look at the hosts file -- To see how many go where
+4. As part of daemonization -- only block hosts within a time limit.
