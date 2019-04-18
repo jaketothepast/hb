@@ -1,6 +1,7 @@
+#define _GNU_SOURCE
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -66,14 +67,19 @@ void showHosts()
 void readToHost(char *host, FILE *hostsFile)
 {
   char buf[256];
-  char *ptr;
+  char *ptr, *f;
 
-  while ((fgets(buf, 256, hostsFile)) != NULL)
+  while ((ptr = fgets(buf, 256, hostsFile)) != NULL)
     {
-      ptr = strcasestr(host, buf);
-      if (ptr != NULL) {
-        break;
+      /**
+      printf("%s\n", ptr);
+      printf("%s\n", host);
+      **/
+
+      f = strcasestr(host, ptr);
+      if (f != NULL) {
         printf("FOUND IT\n");
+        break;
       }
     }
 }
@@ -83,18 +89,13 @@ void readToHost(char *host, FILE *hostsFile)
  */
 int main(int argc, char **argv)
 {
-    FILE *hostsFile = NULL;
+  FILE *hostsFile = fopenHostsFile(0);
 
-    pid_t pid;
+  readToHost("reddit.com", hostsFile);
 
-    pid = fork();
+  fclose(hostsFile);
+  hostsFile = NULL;
 
-    if (pid > 0) {
-      return 0;
-    }
-
-
-    /**
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
@@ -128,5 +129,4 @@ int main(int argc, char **argv)
 
     if (hostsFile != NULL)
         fclose(hostsFile);
-    **/
 }
