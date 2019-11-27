@@ -14,7 +14,7 @@ const char *blockString = "0.0.0.0 ";
 
 FILE *fopenHostsFile(int mode)
 {
-    switch(mode) 
+    switch(mode)
     {
         case 0:
         return fopen("/etc/hosts", "r");
@@ -89,22 +89,21 @@ void readToHost(char *host, FILE *hostsFile)
  */
 int main(int argc, char **argv)
 {
-  FILE *hostsFile = fopenHostsFile(0);
-
-  readToHost("reddit.com", hostsFile);
-
-  fclose(hostsFile);
-  hostsFile = NULL;
-
+    FILE *hostsFile;
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
     }
 
+    printf("Argc: %d\n", argc);
     for (int i = 0; i < argc; i++) 
     {
         if (strcmp(argv[i], "add") == 0) 
         {
+	    if (argc < 3) {
+                printf("Please provide a host!\n");
+		exit(1);
+	    }
             hostsFile = fopenHostsFile(1);
             blockHost(hostsFile, argv[i+1]);
         }
