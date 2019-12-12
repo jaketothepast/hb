@@ -11,15 +11,27 @@
  *        block sites within a certain time limit.
  */
 const char *blockString = "0.0.0.0 ";
+static const char *HOSTFILE = "/etc/hosts";
 
+void replacehost(char *oldhost, char *newhost, FILE *hostsFile);
+
+/**
+ * Return an open handle to the hosts file.
+ *
+ * @param mode whichever mode host file you want to open
+ * @return FILE *
+ */
 FILE *fopenHostsFile(int mode)
 {
     switch(mode)
     {
         case 0:
-        return fopen("/etc/hosts", "r");
+            return fopen(HOSTFILE, "r");
         case 1:
-        return fopen("/etc/hosts", "a");
+            return fopen(HOSTFILE, "a");
+        case 2:
+            return fopen(HOSTFILE, "r+");
+
     }
 }
 
@@ -69,18 +81,23 @@ void readToHost(char *host, FILE *hostsFile)
   char buf[256];
   char *ptr, *f;
 
-  while ((ptr = fgets(buf, 256, hostsFile)) != NULL)
+  printf("Starting to read!\n");
+  printf("Looking for host:%s\n", host);
+  fseek(hostsFile, 0, SEEK_SET);
+  while (fgets(buf, 256, hostsFile) != NULL)
     {
       /**
       printf("%s\n", ptr);
       printf("%s\n", host);
       **/
 
-      f = strcasestr(host, ptr);
+      printf("Reading!\n");
+      f = strcasestr(buf, host);
       if (f != NULL) {
         printf("FOUND IT\n");
         break;
       }
+      memset(buf, 0, sizeof(buf));
     }
 }
 
@@ -100,16 +117,17 @@ int main(int argc, char **argv)
     {
         if (strcmp(argv[i], "add") == 0) 
         {
-	    if (argc < 3) {
+	        if (argc < 3) {
                 printf("Please provide a host!\n");
-		exit(1);
-	    }
+		        exit(1);
+	        }
             hostsFile = fopenHostsFile(1);
             blockHost(hostsFile, argv[i+1]);
         }
         else if (strcmp(argv[i], "edit") == 0)
           {
-            readToHost(argv[i+1], hostsFile);
+            hostsFile = fopenHostsFile(2);
+            replacehost(argv[i+1], argv[i+2], hostsFile);
           }
         else if (strcmp(argv[i], "delete") == 0)
         {
@@ -128,4 +146,38 @@ int main(int argc, char **argv)
 
     if (hostsFile != NULL)
         fclose(hostsFile);
+}
+
+void replacehost(char *oldhost, char *newhost, FILE *hostsFile) {
+    char buf[256];
+    char *ptr, *f;
+
+    char newHostsFile[4096];
+
+    printf("Starting to read!\n");
+    printf("Looking for host:%s\n", oldhost);
+    fseek(hostsFile, 0, SEEK_SET);
+    while (fgets(buf, 256, hostsFile) != NULL)
+    {
+        /**
+        printf("%s\n", ptr);
+        printf("%s\n", host);
+        **/
+
+        printf("Reading!\n");
+        f = strcasestr(buf, oldhost);
+        if (f != NULL) {
+            printf("FOUND IT\n");
+            memset(buf, 0, sizeof(buf));
+            sprintf(buf, "%s %s\n", blockString, newhost);
+            printf("New buf: %s", buf);
+        }
+
+        strcat(newHostsFile, buf);
+        memset(buf, 0, sizeof(buf));
+    }
+
+    if(0 >= fwrite(newHostsFile, sizeof(char), sizeof(newHostsFile), hostsFile)) {
+        fprintf(stderr, "Did not write anything!\n");
+    }
 }
