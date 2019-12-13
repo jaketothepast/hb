@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+// Macro for status checks.
+#define ONFAILED(status, fn) if(status > fn)
+
 /**
  * TODO - daemonize, add in reading of config file,
  *        block sites within a certain time limit.
@@ -171,11 +174,19 @@ int main(int argc, char **argv)
         fclose(hostsFile);
 }
 
+/**
+ * Replace a host in the hosts file with the NEW host.
+ *
+ * @param oldhost
+ * @param newhost
+ * @param hostsFile
+ */
 void replacehost(char *oldhost, char *newhost, FILE *hostsFile) {
     char buf[256];
     char *ptr, *f;
 
     char newHostsFile[4096];
+    memset(newHostsFile, 0, 4096);
 
     printf("Starting to read!\n");
     printf("Looking for host:%s\n", oldhost);
@@ -200,7 +211,11 @@ void replacehost(char *oldhost, char *newhost, FILE *hostsFile) {
         memset(buf, 0, sizeof(buf));
     }
 
-    if(0 >= fwrite(newHostsFile, sizeof(char), sizeof(newHostsFile), hostsFile)) {
+    // Ensure we have an EOF at the end of the file.
+    newHostsFile[strlen(newHostsFile)] = EOF;
+
+    // If this failed, write an error message to stderr
+    ONFAILED(0, (fwrite(newHostsFile, sizeof(char), sizeof(newHostsFile), hostsFile))) {
         fprintf(stderr, "Did not write anything!\n");
     }
 }
