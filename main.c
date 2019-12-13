@@ -31,7 +31,7 @@ void int_handler(int signal) {
     fprintf(stderr, "SIGINT received, cleaning up...\n");
 }
 
-void replacehost(char *oldhost, char *newhost, FILE *hostsFile);
+void replacehost(char *oldhost, char *newhost);
 
 /**
  * Return an open handle to the hosts file.
@@ -39,42 +39,35 @@ void replacehost(char *oldhost, char *newhost, FILE *hostsFile);
  * @param mode whichever mode host file you want to open
  * @return FILE *
  */
-FILE *fopenHostsFile(int mode)
+FILE *fopenHostsFile(char *mode)
 {
-    switch(mode)
-    {
-        case 0:
-            return fopen(HOSTFILE, "r");
-        case 1:
-            return fopen(HOSTFILE, "a");
-        case 2:
-            return fopen(HOSTFILE, "r+");
-
-    }
+    return fopen(HOSTFILE, mode);
 }
 
 /**
  * Block a hosts using the hostsFile in FILE
  */
-void blockHost(FILE *hostsFile, char *host)
+void blockHost(char *host)
 {
-    // Buffer to hold our block rule.
+    FILE *hostsFile = fopenHostsFile("a");
     char blockRule[256];
-
-    // Copy the blockstring and host to the blockrule.
-    strcpy(blockRule, blockString);
-    strcat(blockRule, host);
-    strcat(blockRule, "\n");
-
-    // Add a null terminator..
+    sprintf(blockRule, "%s %s\n", blockString, host);
     blockRule[strlen(blockRule)] = 0;
-    fputs(blockRule, hostsFile);
+
+    ONFAILED(EOF, (fputs(blockRule, hostsFile))) {
+        fprintf(stderr, "Failed to write block rule to file\n");
+    }
+
+    fclose(hostsFile);
 }
 
 void usage()
 {
     fprintf(stdout, "Usage: ");
     fprintf(stdout, "hb [add] <sitename>\n");
+    fprintf(stdout, "hb [edit] <oldsite> <newsite>\n");
+    fprintf(stdout, "hb [show]\n");
+    fprintf(stdout, "hb [delete] <sitename>\n");
 }
 
 void showHosts()
@@ -82,7 +75,7 @@ void showHosts()
     pid_t child = fork();
     int rc = 0;
 
-    char *const parmList[] = {"/bin/cat", "/etc/hosts", NULL};
+    char *const parmList[] = {"/bin/cat", HOSTFILE, NULL};
 
     if (child == 0)
     {
@@ -91,31 +84,6 @@ void showHosts()
     else
     {
         rc = wait(NULL);
-    }
-}
-
-void readToHost(char *host, FILE *hostsFile)
-{
-  char buf[256];
-  char *ptr, *f;
-
-  printf("Starting to read!\n");
-  printf("Looking for host:%s\n", host);
-  fseek(hostsFile, 0, SEEK_SET);
-  while (fgets(buf, 256, hostsFile) != NULL)
-    {
-      /**
-      printf("%s\n", ptr);
-      printf("%s\n", host);
-      **/
-
-      printf("Reading!\n");
-      f = strcasestr(buf, host);
-      if (f != NULL) {
-        printf("FOUND IT\n");
-        break;
-      }
-      memset(buf, 0, sizeof(buf));
     }
 }
 
@@ -147,7 +115,6 @@ int main(int argc, char **argv)
     // Install a sigint handler to help us clean up.
     signal(SIGINT, int_handler);
 
-    FILE *hostsFile;
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
@@ -163,16 +130,14 @@ int main(int argc, char **argv)
                 printf("Please provide a host!\n");
 		        exit(1);
 	        }
-            hostsFile = fopenHostsFile(1);
-            blockHost(hostsFile, argv[i+1]);
+            blockHost(argv[i+1]);
         }
         // Replaces a host
         // TODO: this currently duplicates the whole file and appends it to the end.
         else if (strcmp(argv[i], "edit") == 0)
-          {
-            hostsFile = fopenHostsFile(2);
-            replacehost(argv[i+1], argv[i+2], hostsFile);
-          }
+        {
+            replacehost(argv[i+1], argv[i+2]);
+        }
         // Deletes a host.
         else if (strcmp(argv[i], "delete") == 0)
         {
@@ -194,9 +159,6 @@ int main(int argc, char **argv)
 //            daemonize();
         }
     }
-
-    if (hostsFile != NULL)
-        fclose(hostsFile);
 }
 
 /**
@@ -206,7 +168,8 @@ int main(int argc, char **argv)
  * @param newhost
  * @param hostsFile
  */
-void replacehost(char *oldhost, char *newhost, FILE *hostsFile) {
+void replacehost(char *oldhost, char *newhost) {
+    FILE *hostsFile = fopenHostsFile("w+");
     char buf[256];
     char *ptr, *f;
 
@@ -216,20 +179,13 @@ void replacehost(char *oldhost, char *newhost, FILE *hostsFile) {
     printf("Starting to read!\n");
     printf("Looking for host:%s\n", oldhost);
     fseek(hostsFile, 0, SEEK_SET);
+
     while (fgets(buf, 256, hostsFile) != NULL)
     {
-        /**
-        printf("%s\n", ptr);
-        printf("%s\n", host);
-        **/
-
-        printf("Reading!\n");
         f = strcasestr(buf, oldhost);
         if (f != NULL) {
-            printf("FOUND IT\n");
             memset(buf, 0, sizeof(buf));
             sprintf(buf, "%s %s\n", blockString, newhost);
-            printf("New buf: %s", buf);
         }
 
         strcat(newHostsFile, buf);
@@ -239,8 +195,12 @@ void replacehost(char *oldhost, char *newhost, FILE *hostsFile) {
     // Ensure we have an EOF at the end of the file.
     newHostsFile[strlen(newHostsFile)] = EOF;
 
+    // Seek to 0
+    fseek(hostsFile, 0, SEEK_SET);
+
     // If this failed, write an error message to stderr
     ONFAILED(0, (fwrite(newHostsFile, sizeof(char), sizeof(newHostsFile), hostsFile))) {
         fprintf(stderr, "Did not write anything!\n");
     }
+    fclose(hostsFile);
 }
