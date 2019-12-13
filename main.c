@@ -102,6 +102,26 @@ void readToHost(char *host, FILE *hostsFile)
 }
 
 /**
+ * Daemonize the process, to be run like this ONLY if there were no arguments
+ * provided.
+ *
+ * TODO:
+ * read the config file.
+ */
+void daemonize() {
+    pid_t mypid = fork();
+    if (mypid != 0) {
+        // I am the parent, kill myself
+        fprintf(stderr, "Parent exiting");
+        exit(1);
+    }
+
+    else {
+        // DO THE THING.
+    }
+}
+
+/**
  * Entrypoint.
  */
 int main(int argc, char **argv)
@@ -141,6 +161,9 @@ int main(int argc, char **argv)
         else if (strcmp(argv[i], "show") == 0)
         {
             showHosts();
+        }
+        else {
+            daemonize();
         }
     }
 
