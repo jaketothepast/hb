@@ -10,11 +10,26 @@
 #define ONFAILED(status, fn) if(status > fn)
 
 /**
- * TODO - daemonize, add in reading of config file,
- *        block sites within a certain time limit.
+ * TODO: Add config file reading for daemonization.
+ * TODO: Allow daemonized process to call file reading/editing routines at will.
+ * TODO: Generalized routine for reading through a file and replacing a line.
+ * TODO: Generalized routine for reading a file.
  */
+
+// Our rule we use to blackhole domains
 const char *blockString = "0.0.0.0 ";
+
+// The current hardcoded location of the hosts file.
 static const char *HOSTFILE = "/etc/hosts";
+
+/**
+ * SIGINT handler, cleans up resources on Ctrl-C
+ * @param signal
+ */
+void int_handler(int signal) {
+    // Clean up any resources.
+    fprintf(stderr, "SIGINT received, cleaning up...\n");
+}
 
 void replacehost(char *oldhost, char *newhost, FILE *hostsFile);
 
@@ -129,15 +144,19 @@ void daemonize() {
  */
 int main(int argc, char **argv)
 {
+    // Install a sigint handler to help us clean up.
+    signal(SIGINT, int_handler);
+
     FILE *hostsFile;
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
     }
 
-    printf("Argc: %d\n", argc);
-    for (int i = 0; i < argc; i++) 
+    // Process our command line arguments.
+    for (int i = 0; i < argc; i++)
     {
+        // Opens a hosts file in append mode, adding a host.
         if (strcmp(argv[i], "add") == 0) 
         {
 	        if (argc < 3) {
@@ -147,26 +166,32 @@ int main(int argc, char **argv)
             hostsFile = fopenHostsFile(1);
             blockHost(hostsFile, argv[i+1]);
         }
+        // Replaces a host
+        // TODO: this currently duplicates the whole file and appends it to the end.
         else if (strcmp(argv[i], "edit") == 0)
           {
             hostsFile = fopenHostsFile(2);
             replacehost(argv[i+1], argv[i+2], hostsFile);
           }
+        // Deletes a host.
         else if (strcmp(argv[i], "delete") == 0)
         {
             fprintf(stdout, "Soon to be implemented!\n");
         }
+        // Shows usage.
         else if (strcmp(argv[i], "-h") == 0)
         {
             usage();
             exit(0);
         }
+        // Show the entire hosts file.
         else if (strcmp(argv[i], "show") == 0)
         {
             showHosts();
         }
+        // Daemonize this process, allowing for hosts file to be automagically managed.
         else {
-            daemonize();
+//            daemonize();
         }
     }
 
