@@ -88,6 +88,14 @@ void showHosts()
 }
 
 /**
+ * Read the configuration file and give a return code to indicate any changes.
+ * @return 1 if successful, 0 if otherwise.
+ */
+int read_config_file() {
+
+}
+
+/**
  * Daemonize the process, to be run like this ONLY if there were no arguments
  * provided.
  *
@@ -104,6 +112,14 @@ void daemonize() {
 
     else {
         // DO THE THING.
+        while(1) {
+            // read config
+            read_config_file();
+            // make adjustments
+
+            // profit??
+            // JK, sleep.
+        }
     }
 }
 
