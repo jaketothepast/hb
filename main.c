@@ -21,6 +21,7 @@
 /** GLOBALS **/
 // Our rule we use to blackhole domains
 const char *blockString = "0.0.0.0 ";
+const char *CONFIG;
 // The current hardcoded location of the hosts file.
 static const char *HOSTFILE = "/etc/hosts";
 // Our configuration
@@ -33,6 +34,9 @@ struct json_object *config;
 void int_handler(int signal) {
     // Clean up any resources.
     fprintf(stderr, "SIGINT received, cleaning up...\n");
+
+    // This should be the final decrement to the config object.
+    json_object_put(config);
 }
 
 void replacehost(char *oldhost, char *newhost);
@@ -96,7 +100,12 @@ void showHosts()
  * @return 1 if successful, 0 if otherwise.
  */
 int read_config_file() {
-    config = json_tokener_parse(CONFIG);
+    // increment the refcount for tmp.
+    struct json_object *tmp = json_object_get(config);
+    /** Utilize the JSON parsing library json-c to parse configuration */
+    json_object_object_foreach(tmp, key, val) {
+        fprintf(stderr,"Key: %s\nValue:%s\n\n", key, val);
+    }
 }
 
 /**
@@ -119,6 +128,7 @@ void daemonize() {
         while(1) {
             // read config
             read_config_file();
+            break;
             // make adjustments
 
             // profit??
@@ -134,7 +144,6 @@ int main(int argc, char **argv)
 {
     // Install a sigint handler to help us clean up.
     signal(SIGINT, int_handler);
-
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
@@ -150,13 +159,13 @@ int main(int argc, char **argv)
                 printf("Please provide a host!\n");
 		        exit(1);
 	        }
-            blockHost(argv[i+1]);
+            blockHost(argv[++i]);
         }
         // Replaces a host
         // TODO: this currently duplicates the whole file and appends it to the end.
         else if (strcmp(argv[i], "edit") == 0)
         {
-            replacehost(argv[i+1], argv[i+2]);
+            replacehost(argv[++i], argv[++i]);
         }
         // Deletes a host.
         else if (strcmp(argv[i], "delete") == 0)
@@ -174,6 +183,11 @@ int main(int argc, char **argv)
         {
             showHosts();
         }
+        else if (strcmp(argv[i], "-config") == 0) {
+            config = json_tokener_parse(argv[++i]);
+            CONFIG = argv[i];
+        }
+
         // Daemonize this process, allowing for hosts file to be automagically managed.
         else {
 //            daemonize();
