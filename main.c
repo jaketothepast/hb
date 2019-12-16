@@ -6,8 +6,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <json_tokener.h>
-
 // Macro for status checks.
 #define ONFAILED(status, fn) if(status > fn)
 
@@ -25,7 +23,6 @@ const char *CONFIG;
 // The current hardcoded location of the hosts file.
 static const char *HOSTFILE = "/etc/hosts";
 // Our configuration
-struct json_object *config;
 
 /**
  * SIGINT handler, cleans up resources on Ctrl-C
@@ -36,7 +33,6 @@ void int_handler(int signal) {
     fprintf(stderr, "SIGINT received, cleaning up...\n");
 
     // This should be the final decrement to the config object.
-    json_object_put(config);
 }
 
 void replacehost(char *oldhost, char *newhost);
@@ -101,11 +97,7 @@ void showHosts()
  */
 int read_config_file() {
     // increment the refcount for tmp.
-    struct json_object *tmp = json_object_get(config);
-    /** Utilize the JSON parsing library json-c to parse configuration */
-    json_object_object_foreach(tmp, key, val) {
-        fprintf(stderr,"Key: %s\nValue:%s\n\n", key, val);
-    }
+
 }
 
 /**
@@ -184,7 +176,6 @@ int main(int argc, char **argv)
             showHosts();
         }
         else if (strcmp(argv[i], "-config") == 0) {
-            config = json_tokener_parse(argv[++i]);
             CONFIG = argv[i];
         }
 
