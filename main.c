@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <json_tokener.h>
+
 // Macro for status checks.
 #define ONFAILED(status, fn) if(status > fn)
 
@@ -16,11 +18,13 @@
  * TODO: Generalized routine for reading a file.
  */
 
+/** GLOBALS **/
 // Our rule we use to blackhole domains
 const char *blockString = "0.0.0.0 ";
-
 // The current hardcoded location of the hosts file.
 static const char *HOSTFILE = "/etc/hosts";
+// Our configuration
+struct json_object *config;
 
 /**
  * SIGINT handler, cleans up resources on Ctrl-C
@@ -92,7 +96,7 @@ void showHosts()
  * @return 1 if successful, 0 if otherwise.
  */
 int read_config_file() {
-
+    config = json_tokener_parse(CONFIG);
 }
 
 /**
