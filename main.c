@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "linkedlist.h"
+
 // Macro for status checks.
 #define ONFAILED(status, fn) if(status > fn)
 
@@ -19,7 +21,8 @@
 /** GLOBALS **/
 // Our rule we use to blackhole domains
 const char *blockString = "0.0.0.0 ";
-const char *CONFIG;
+LinkedList *hosts = (LinkedList *) NULL;
+
 // The current hardcoded location of the hosts file.
 static const char *HOSTFILE = "/etc/hosts";
 // Our configuration
@@ -97,7 +100,7 @@ void showHosts()
  */
 int read_config_file() {
     // increment the refcount for tmp.
-
+    linkedlist_add(hosts, "hello.com");
 }
 
 /**
