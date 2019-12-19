@@ -24,7 +24,8 @@ const char *blockString = "0.0.0.0 ";
 LinkedList *hosts = (LinkedList *) NULL;
 
 // The current hardcoded location of the hosts file.
-static const char *HOSTFILE = "/etc/hosts";
+static char *HOSTFILE = "/etc/hosts";
+static char *CONFIG;
 // Our configuration
 
 /**
@@ -100,6 +101,7 @@ void showHosts()
  */
 int read_config_file() {
     // increment the refcount for tmp.
+
     linkedlist_add(hosts, "hello.com");
 }
 
@@ -179,7 +181,7 @@ int main(int argc, char **argv)
             showHosts();
         }
         else if (strcmp(argv[i], "-config") == 0) {
-            CONFIG = argv[i];
+            CONFIG = argv[++i];
         }
 
         // Daemonize this process, allowing for hosts file to be automagically managed.

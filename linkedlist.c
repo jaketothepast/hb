@@ -14,21 +14,24 @@ LinkedList *linkedlist_new() {
  * Add a char * to our linked list and set up a new head.
  * @param head The first node in the list.
  * @param data Our data to add to the list.
- * @return
  */
-void *linkedlist_add(LinkedList *head, char *data) {
+void linkedlist_add(LinkedList *head, char *data) {
+    // Create a pointer to the head element.
+    LinkedList *tmp = head;
+
+    // Head was null? Create a new node.
     if (head == NULL) {
         head = linkedlist_new();
-    }
-    if (head->data == NULL) {
         head->data = data;
     }
-    LinkedList *tmp = linkedlist_new();
-    // Set the head pointer to the next node.
-    head->next = tmp;
+    else {
+        // Iterate until we don't have a next node.
+        while ((tmp = tmp->next) != NULL) ;
 
-    // Set head to tmp.
-    head = tmp;
+        tmp->next = linkedlist_new();
+        tmp->next->data = data;
+        tmp->next->next = NULL;
+    }
 }
 
 void free_node(LinkedList *node) {
