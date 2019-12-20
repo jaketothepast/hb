@@ -16,6 +16,6 @@ typedef struct linkedlist {
 } LinkedList;
 
 LinkedList *linkedlist_new();
-void linkedlist_add(LinkedList *head, char *data);
-void linkedlist_print(LinkedList *head, char *data);
+void linkedlist_add(LinkedList **head, char *data);
+void linkedlist_print(LinkedList *head);
 #endif //HOSTBLOCKER_LINKEDLIST_H

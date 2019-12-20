@@ -21,7 +21,7 @@
 /** GLOBALS **/
 // Our rule we use to blackhole domains
 const char *blockString = "0.0.0.0 ";
-LinkedList *hosts = (LinkedList *) NULL;
+LinkedList *hosts = NULL;
 
 // The current hardcoded location of the hosts file.
 static char *HOSTFILE = "/etc/hosts";
@@ -140,6 +140,9 @@ void daemonize() {
 int main(int argc, char **argv)
 {
     // Install a sigint handler to help us clean up.
+    linkedlist_add(hosts, "hello.com");
+    linkedlist_add(hosts, "heloworld.com");
+    linkedlist_print(hosts);
     signal(SIGINT, int_handler);
     if (getuid() != 0)
     {

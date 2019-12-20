@@ -2,11 +2,13 @@
 // Created by jake on 12/17/19.
 //
 
+#include <stdio.h>
 #include "linkedlist.h"
 
 LinkedList *linkedlist_new() {
     LinkedList *tmp = (LinkedList *) malloc(sizeof(LinkedList));
     tmp->data = NULL;
+    tmp->next = NULL;
     return tmp;
 }
 
@@ -15,16 +17,15 @@ LinkedList *linkedlist_new() {
  * @param head The first node in the list.
  * @param data Our data to add to the list.
  */
-void linkedlist_add(LinkedList *head, char *data) {
+void linkedlist_add(LinkedList **head, char *data) {
     // Create a pointer to the head element.
-    LinkedList *tmp = head;
+    LinkedList *tmp = *head;
 
-    // Head was null? Create a new node.
-    if (head == NULL) {
-        head = linkedlist_new();
-        head->data = data;
+    if (tmp->data == NULL) {
+        tmp->data = data;
     }
     else {
+        fprintf(stderr, "Adding to the body\n");
         // Iterate until we don't have a next node.
         while ((tmp = tmp->next) != NULL) ;
 
@@ -34,6 +35,17 @@ void linkedlist_add(LinkedList *head, char *data) {
     }
 }
 
+void linkedlist_print(LinkedList *head) {
+    fprintf(stderr, "Entering linked list print\n");
+    LinkedList *tmp = head;
+    while (tmp != NULL) {
+        fprintf(stderr, "Node: %s\n", tmp->data);
+        tmp = tmp->next;
+    }
+}
+void free_list(LinkedList *head) {
+
+}
 void free_node(LinkedList *node) {
     free(node->data);
     free(node);
