@@ -102,7 +102,7 @@ void showHosts()
 int read_config_file() {
     // increment the refcount for tmp.
 
-    linkedlist_add(hosts, "hello.com");
+    linkedlist_add(&hosts, "hello.com");
 }
 
 /**
@@ -140,8 +140,8 @@ void daemonize() {
 int main(int argc, char **argv)
 {
     // Install a sigint handler to help us clean up.
-    linkedlist_add(hosts, "hello.com");
-    linkedlist_add(hosts, "heloworld.com");
+    linkedlist_add(&hosts, "hello.com");
+    linkedlist_add(&hosts, "heloworld.com");
     linkedlist_print(hosts);
     signal(SIGINT, int_handler);
     if (getuid() != 0)

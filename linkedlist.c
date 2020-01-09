@@ -3,12 +3,19 @@
 //
 
 #include <stdio.h>
+#include <string.h>
 #include "linkedlist.h"
 
 LinkedList *linkedlist_new() {
     LinkedList *tmp = (LinkedList *) malloc(sizeof(LinkedList));
     tmp->data = NULL;
     tmp->next = NULL;
+    return tmp;
+}
+
+static LinkedList *_linkedlist_new_with_data(char *data) {
+    LinkedList *tmp = linkedlist_new();
+    tmp->data = strdup(data);
     return tmp;
 }
 
@@ -21,22 +28,20 @@ void linkedlist_add(LinkedList **head, char *data) {
     // Create a pointer to the head element.
     LinkedList *tmp = *head;
 
-    if (tmp->data == NULL) {
-        tmp->data = data;
+    if (tmp == NULL) {
+        *head = _linkedlist_new_with_data(data);
     }
     else {
-        fprintf(stderr, "Adding to the body\n");
         // Iterate until we don't have a next node.
-        while ((tmp = tmp->next) != NULL) ;
+        while (tmp->next != NULL)
+            tmp = tmp->next;
 
-        tmp->next = linkedlist_new();
-        tmp->next->data = data;
+        tmp->next = _linkedlist_new_with_data(data);
         tmp->next->next = NULL;
     }
 }
 
 void linkedlist_print(LinkedList *head) {
-    fprintf(stderr, "Entering linked list print\n");
     LinkedList *tmp = head;
     while (tmp != NULL) {
         fprintf(stderr, "Node: %s\n", tmp->data);
