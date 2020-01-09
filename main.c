@@ -192,6 +192,8 @@ int main(int argc, char **argv)
 //            daemonize();
         }
     }
+
+    free_list(&hosts);
 }
 
 /**

@@ -48,8 +48,20 @@ void linkedlist_print(LinkedList *head) {
         tmp = tmp->next;
     }
 }
-void free_list(LinkedList *head) {
 
+void free_list(LinkedList **head) {
+    LinkedList *ptr = *head;
+    LinkedList *prev = NULL;
+
+    if (ptr == NULL)
+        return;
+
+    while (ptr != NULL) {
+        prev = ptr;
+        ptr = ptr->next;
+        free(prev->data);
+        free(prev);
+    }
 }
 void free_node(LinkedList *node) {
     free(node->data);
