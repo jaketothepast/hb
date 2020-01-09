@@ -39,6 +39,14 @@ void int_handler(int signal) {
     // This should be the final decrement to the config object.
 }
 
+/**
+ * SIGHUP handler, will reload the configuration file.
+ * @param signal Signo passed by system.
+ */
+void hup_handler(int signal) {
+
+}
+
 void replacehost(char *oldhost, char *newhost);
 
 /**
@@ -139,10 +147,6 @@ void daemonize() {
  */
 int main(int argc, char **argv)
 {
-    // Install a sigint handler to help us clean up.
-    linkedlist_add(&hosts, "hello.com");
-    linkedlist_add(&hosts, "heloworld.com");
-    linkedlist_print(hosts);
     signal(SIGINT, int_handler);
     if (getuid() != 0)
     {
