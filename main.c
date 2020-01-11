@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #include "linkedlist.h"
 
@@ -105,12 +106,26 @@ void showHosts()
 
 /**
  * Read the configuration file and give a return code to indicate any changes.
+ * TODO: this method needs to create/delete hosts.
  * @return 1 if successful, 0 if otherwise.
  */
 int read_config_file() {
     // increment the refcount for tmp.
+    FILE *config = fopen(CONFIG, "r");
+    char buf[1024];
+    if (config == NULL) {
+        fprintf(stderr, "Error trying to open config file: %s\n", strerror(errno));
+    }
 
-    linkedlist_add(&hosts, "hello.com");
+    else {
+        // Add each line from the file to the linked list.
+        while (fgets(buf, 1024, config) != NULL) {
+            buf[strlen(buf) - 1] = 0;
+
+            // We should add a method that overwrites the linked list node at an index.
+            linkedlist_add(&hosts, buf);
+        }
+    }
 }
 
 /**
