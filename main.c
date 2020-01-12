@@ -123,6 +123,7 @@ int read_config_file() {
             buf[strlen(buf) - 1] = 0;
 
             // We should add a method that overwrites the linked list node at an index.
+            fprintf(stderr, "Read %s from config file\n", buf);
             linkedlist_add(&hosts, buf);
         }
     }
@@ -204,6 +205,7 @@ int main(int argc, char **argv)
         }
         else if (strcmp(argv[i], "-config") == 0) {
             CONFIG = argv[++i];
+            read_config_file();
         }
 
         // Daemonize this process, allowing for hosts file to be automagically managed.
