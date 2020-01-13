@@ -129,10 +129,14 @@ int read_config_file() {
             fprintf(stderr, "Read %s from config file\n", buf);
 
             // overwrite data in these nodes.
-            // TODO - this could be more efficient
             if (ptr != NULL && strcmp(buf, ptr->data) != 0) {
-                free(ptr->data);
-                ptr->data = strdup(buf);
+                if (strlen(ptr->data) < strlen(buf)) {
+                    if ((ptr->data = realloc(ptr->data, strlen(buf))) < 0) {
+                        fprintf(stderr, "Failed to realloc pointer\n");
+                        exit(1);
+                    }
+                }
+                strcpy(ptr->data, buf);
                 ptr = ptr->next;
             } else {
                 linkedlist_add(&hosts, buf);
