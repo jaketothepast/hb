@@ -12,6 +12,8 @@
 // Macro for status checks.
 #define ONFAILED(status, fn) if(status > fn)
 
+#define ARG_IS(argname) (strcmp(argv[i], argname) == 0)
+
 /**
  * TODO: Add config file reading for daemonization.
  * TODO: Allow daemonized process to call file reading/editing routines at will.
@@ -23,6 +25,7 @@
 // Our rule we use to blackhole domains
 const char *blockString = "0.0.0.0 ";
 LinkedList *hosts = NULL;
+int HB_PERIOD = 60;
 
 // The current hardcoded location of the hosts file.
 static char *HOSTFILE = "/etc/hosts";
@@ -131,7 +134,7 @@ int read_config_file() {
             // overwrite data in these nodes.
             if (ptr != NULL && strcmp(buf, ptr->data) != 0) {
                 if (strlen(ptr->data) < strlen(buf)) {
-                    if ((ptr->data = realloc(ptr->data, strlen(buf))) < 0) {
+                    if ((ptr->data = realloc(ptr->data, strlen(buf))) == NULL) {
                         fprintf(stderr, "Failed to realloc pointer\n");
                         exit(1);
                     }
@@ -146,32 +149,12 @@ int read_config_file() {
 }
 
 /**
- * Daemonize the process, to be run like this ONLY if there were no arguments
- * provided.
- *
- * TODO:
- * read the config file.
+ * Wake up on SIGALRM to do our thing.
  */
-void daemonize() {
-    pid_t mypid = fork();
-    if (mypid != 0) {
-        // I am the parent, kill myself
-        fprintf(stderr, "Parent exiting");
-        exit(1);
-    }
+void run_loop(int signal) {
+    read_config_file();
 
-    else {
-        // DO THE THING.
-        while(1) {
-            // read config
-            read_config_file();
-            break;
-            // make adjustments
-
-            // profit??
-            // JK, sleep.
-        }
-    }
+    alarm(HB_PERIOD);
 }
 
 /**
@@ -189,7 +172,7 @@ int main(int argc, char **argv)
     for (int i = 0; i < argc; i++)
     {
         // Opens a hosts file in append mode, adding a host.
-        if (strcmp(argv[i], "add") == 0) 
+        if (ARG_IS("add"))
         {
 	        if (argc < 3) {
                 printf("Please provide a host!\n");
@@ -199,29 +182,32 @@ int main(int argc, char **argv)
         }
         // Replaces a host
         // TODO: this currently duplicates the whole file and appends it to the end.
-        else if (strcmp(argv[i], "edit") == 0)
+        else if (ARG_IS("edit"))
         {
             replacehost(argv[++i], argv[++i]);
         }
         // Deletes a host.
-        else if (strcmp(argv[i], "delete") == 0)
+        else if (ARG_IS("delete"))
         {
             fprintf(stdout, "Soon to be implemented!\n");
         }
         // Shows usage.
-        else if (strcmp(argv[i], "-h") == 0)
+        else if (ARG_IS("-h"))
         {
             usage();
             exit(0);
         }
         // Show the entire hosts file.
-        else if (strcmp(argv[i], "show") == 0)
+        else if (ARG_IS("show"))
         {
             showHosts();
         }
-        else if (strcmp(argv[i], "-config") == 0) {
+        else if (ARG_IS("-config")) {
             CONFIG = argv[++i];
             read_config_file();
+        }
+        else if (ARG_IS("-period")) {
+            HB_PERIOD = atoi(argv[++i]);
         }
 
         // Daemonize this process, allowing for hosts file to be automagically managed.
