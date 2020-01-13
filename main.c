@@ -106,25 +106,37 @@ void showHosts()
 
 /**
  * Read the configuration file and give a return code to indicate any changes.
- * TODO: this method needs to create/delete hosts.
+ * TODO: overwrites hosts, but doesn't handle if the list shrinks.
  * @return 1 if successful, 0 if otherwise.
  */
 int read_config_file() {
     // increment the refcount for tmp.
     FILE *config = fopen(CONFIG, "r");
+    LinkedList *ptr = hosts;
+
     char buf[1024];
+
     if (config == NULL) {
         fprintf(stderr, "Error trying to open config file: %s\n", strerror(errno));
     }
-
     else {
         // Add each line from the file to the linked list.
         while (fgets(buf, 1024, config) != NULL) {
+
             buf[strlen(buf) - 1] = 0;
 
             // We should add a method that overwrites the linked list node at an index.
             fprintf(stderr, "Read %s from config file\n", buf);
-            linkedlist_add(&hosts, buf);
+
+            // overwrite data in these nodes.
+            // TODO - this could be more efficient
+            if (ptr != NULL && strcmp(buf, ptr->data) != 0) {
+                free(ptr->data);
+                ptr->data = strdup(buf);
+                ptr = ptr->next;
+            } else {
+                linkedlist_add(&hosts, buf);
+            }
         }
     }
 }
