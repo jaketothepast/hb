@@ -32,24 +32,6 @@ static char *HOSTFILE = "/etc/hosts";
 static char *CONFIG;
 // Our configuration
 
-/**
- * SIGINT handler, cleans up resources on Ctrl-C
- * @param signal
- */
-void int_handler(int signal) {
-    // Clean up any resources.
-    fprintf(stderr, "SIGINT received, cleaning up...\n");
-
-    // This should be the final decrement to the config object.
-}
-
-/**
- * SIGHUP handler, will reload the configuration file.
- * @param signal Signo passed by system.
- */
-void hup_handler(int signal) {
-
-}
 
 void replacehost(char *oldhost, char *newhost);
 
@@ -161,9 +143,24 @@ int read_config_file() {
  * Wake up on SIGALRM to do our thing.
  */
 void run_loop(int signal) {
-    read_config_file();
+    const sigset_t sigset;
+    sigaddset(&sigset, SIGALRM);
+    sigaddset(&sigset, SIGINT);
 
-    alarm(HB_PERIOD);
+    int signo;
+
+    for (;;){
+        sigwait(&sigset, &signo);
+
+        if (signo == SIGINT) {
+            break;
+        }
+        else if (signo == SIGALRM) {
+            fprintf(stderr, "Waking up and reading config..\n");
+            read_config_file();
+            alarm(HB_PERIOD);
+        }
+    }
 }
 
 /**
@@ -171,7 +168,6 @@ void run_loop(int signal) {
  */
 int main(int argc, char **argv)
 {
-    signal(SIGINT, int_handler);
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
