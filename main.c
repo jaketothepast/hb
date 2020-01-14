@@ -63,14 +63,6 @@ void blockHost(char *host)
     fclose(hostsFile);
 }
 
-void usage()
-{
-    fprintf(stdout, "Usage: ");
-    fprintf(stdout, "hb [add] <sitename>\n");
-    fprintf(stdout, "hb [edit] <oldsite> <newsite>\n");
-    fprintf(stdout, "hb [show]\n");
-    fprintf(stdout, "hb [delete] <sitename>\n");
-}
 
 void showHosts()
 {
@@ -175,6 +167,16 @@ void run_loop() {
             alarm(HB_PERIOD);
         }
     }
+}
+
+void usage()
+{
+    fprintf(stdout, "Usage: ");
+    fprintf(stdout, "hb [add] <sitename>\n");
+    fprintf(stdout, "hb [edit] <oldsite> <newsite>\n");
+    fprintf(stdout, "hb [show]\n");
+    fprintf(stdout, "hb [delete] <sitename>\n");
+    fprintf(stdout, "hb -period <wakeup period> -config <config file> -daemon\n");
 }
 
 /**
