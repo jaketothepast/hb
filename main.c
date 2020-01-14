@@ -115,7 +115,7 @@ void showHosts()
 int read_config_file() {
     // increment the refcount for tmp.
     FILE *config = fopen(CONFIG, "r");
-    LinkedList *ptr = hosts;
+    LinkedList *ptr = hosts, *prev = NULL;
 
     char buf[1024];
 
@@ -144,6 +144,15 @@ int read_config_file() {
             } else {
                 linkedlist_add(&hosts, buf);
             }
+        }
+
+        // If we didn't exhaust the linked list, then we need to free any remaining nodes because the list
+        // shortened.
+        while (ptr != NULL) {
+            prev = ptr;
+            ptr = ptr->next;
+            free(prev->data);
+            free(prev);
         }
     }
 }
