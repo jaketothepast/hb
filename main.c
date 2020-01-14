@@ -142,13 +142,14 @@ int read_config_file() {
 /**
  * Wake up on SIGALRM to do our thing.
  */
-void run_loop(int signal) {
-    const sigset_t sigset;
+void run_loop() {
+    sigset_t sigset;
     sigaddset(&sigset, SIGALRM);
     sigaddset(&sigset, SIGINT);
 
     int signo;
 
+    alarm(HB_PERIOD);
     for (;;){
         sigwait(&sigset, &signo);
 
@@ -168,9 +169,12 @@ void run_loop(int signal) {
  */
 int main(int argc, char **argv)
 {
+    int run_as_daemon = 0;
+
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
+        exit(1);
     }
 
     // Process our command line arguments.
@@ -186,7 +190,6 @@ int main(int argc, char **argv)
             blockHost(argv[++i]);
         }
         // Replaces a host
-        // TODO: this currently duplicates the whole file and appends it to the end.
         else if (ARG_IS("edit"))
         {
             replacehost(argv[++i], argv[++i]);
@@ -209,16 +212,18 @@ int main(int argc, char **argv)
         }
         else if (ARG_IS("-config")) {
             CONFIG = argv[++i];
-            read_config_file();
         }
         else if (ARG_IS("-period")) {
             HB_PERIOD = atoi(argv[++i]);
         }
-
-        // Daemonize this process, allowing for hosts file to be automagically managed.
-        else {
-//            daemonize();
+        else if (ARG_IS("-daemon")) {
+            run_as_daemon = 1;
         }
+
+    }
+
+    if (run_as_daemon) {
+        run_loop();
     }
 
     free_list(&hosts);
