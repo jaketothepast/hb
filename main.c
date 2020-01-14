@@ -91,7 +91,6 @@ void showHosts()
 
 /**
  * Read the configuration file and give a return code to indicate any changes.
- * TODO: overwrites hosts, but doesn't handle if the list shrinks.
  * @return 1 if successful, 0 if otherwise.
  */
 int read_config_file() {
@@ -103,6 +102,8 @@ int read_config_file() {
 
     if (config == NULL) {
         fprintf(stderr, "Error trying to open config file: %s\n", strerror(errno));
+        fclose(config);
+        return 0;
     }
     else {
         // Add each line from the file to the linked list.
@@ -110,22 +111,25 @@ int read_config_file() {
 
             buf[strlen(buf) - 1] = 0;
 
-            // We should add a method that overwrites the linked list node at an index.
-            fprintf(stderr, "Read %s from config file\n", buf);
-
             // overwrite data in these nodes.
-            if (ptr != NULL && strcmp(buf, ptr->data) != 0) {
+            if (ptr != NULL) {
                 if (strlen(ptr->data) < strlen(buf)) {
                     if ((ptr->data = realloc(ptr->data, strlen(buf))) == NULL) {
                         fprintf(stderr, "Failed to realloc pointer\n");
-                        exit(1);
+                        return 0;
                     }
                 }
                 strcpy(ptr->data, buf);
+                prev = ptr;
                 ptr = ptr->next;
             } else {
                 linkedlist_add(&hosts, buf);
             }
+        }
+
+        // In this case, the list got chopped off, we need to reset pointers and free the rest of our list.
+        if (ptr != NULL) {
+            prev->next = NULL;
         }
 
         // If we didn't exhaust the linked list, then we need to free any remaining nodes because the list
@@ -136,6 +140,8 @@ int read_config_file() {
             free(prev->data);
             free(prev);
         }
+        fclose(config);
+        return 1;
     }
 }
 
