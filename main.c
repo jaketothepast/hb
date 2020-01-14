@@ -144,14 +144,21 @@ int read_config_file() {
  */
 void run_loop() {
     sigset_t sigset;
+
+    sigemptyset(&sigset);
     sigaddset(&sigset, SIGALRM);
     sigaddset(&sigset, SIGINT);
+    sigprocmask(SIG_BLOCK, &sigset, NULL);
 
     int signo;
+    int stat;
 
     alarm(HB_PERIOD);
     for (;;){
-        sigwait(&sigset, &signo);
+        stat = sigwait(&sigset, &signo);
+        if (stat == EINVAL) {
+            fprintf(stderr, "We have an invalid signo\n");
+        }
 
         if (signo == SIGINT) {
             break;
@@ -170,7 +177,6 @@ void run_loop() {
 int main(int argc, char **argv)
 {
     int run_as_daemon = 0;
-
     if (getuid() != 0)
     {
         fprintf(stderr, "hb: Must run as root using sudo!\n");
