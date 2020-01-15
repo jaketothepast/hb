@@ -85,7 +85,7 @@ void showHosts()
  * Read the configuration file and give a return code to indicate any changes.
  * @return 1 if successful, 0 if otherwise.
  */
-int read_config_file() {
+int update_hosts_file() {
     // increment the refcount for tmp.
     FILE *config = fopen(CONFIG, "r");
     LinkedList *ptr = hosts, *prev = NULL;
@@ -163,7 +163,7 @@ void run_loop() {
         }
         else if (signo == SIGALRM) {
             fprintf(stderr, "Waking up and reading config..\n");
-            read_config_file();
+            update_hosts_file();
             alarm(HB_PERIOD);
         }
     }
@@ -206,7 +206,8 @@ int main(int argc, char **argv)
         // Replaces a host
         else if (ARG_IS("edit"))
         {
-            replacehost(argv[++i], argv[++i]);
+            replacehost(argv[i + 1], argv[i + 2]);
+            i += 2;
         }
         // Deletes a host.
         else if (ARG_IS("delete"))
@@ -251,16 +252,14 @@ int main(int argc, char **argv)
  * @param hostsFile
  */
 void replacehost(char *oldhost, char *newhost) {
-    FILE *hostsFile = fopenHostsFile("w+");
+    FILE *hostsFile = fopenHostsFile("r");
     char buf[256];
     char *ptr, *f;
 
     char newHostsFile[4096];
     memset(newHostsFile, 0, 4096);
 
-    printf("Starting to read!\n");
-    printf("Looking for host:%s\n", oldhost);
-    fseek(hostsFile, 0, SEEK_SET);
+//    fseek(hostsFile, 0, SEEK_SET);
 
     while (fgets(buf, 256, hostsFile) != NULL)
     {
@@ -269,7 +268,6 @@ void replacehost(char *oldhost, char *newhost) {
             memset(buf, 0, sizeof(buf));
             sprintf(buf, "%s %s\n", blockString, newhost);
         }
-
         strcat(newHostsFile, buf);
         memset(buf, 0, sizeof(buf));
     }
@@ -277,12 +275,14 @@ void replacehost(char *oldhost, char *newhost) {
     // Ensure we have an EOF at the end of the file.
     newHostsFile[strlen(newHostsFile)] = EOF;
 
-    // Seek to 0
-    fseek(hostsFile, 0, SEEK_SET);
+//    // Seek to 0
+//    fseek(hostsFile, 0, SEEK_SET);
+    fclose(hostsFile);
 
     // If this failed, write an error message to stderr
-    ONFAILED(0, (fwrite(newHostsFile, sizeof(char), sizeof(newHostsFile), hostsFile))) {
-        fprintf(stderr, "Did not write anything!\n");
-    }
-    fclose(hostsFile);
+//    ONFAILED(0, (fwrite(newHostsFile, sizeof(char), sizeof(newHostsFile), hostsFile))) {
+//        fprintf(stderr, "Did not write anything!\n");
+//    }
+    fprintf(stderr, "New hosts file: \n%s\n", newHostsFile);
+//    fclose(hostsFile);
 }
