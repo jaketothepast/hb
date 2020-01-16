@@ -63,6 +63,10 @@ void blockHost(char *host)
     fclose(hostsFile);
 }
 
+void deleteHost(char *host)
+{
+
+}
 
 void showHosts()
 {
@@ -111,16 +115,18 @@ int update_hosts_file() {
                         return 0;
                     }
                 }
+                replacehost(ptr->data, buf);
                 strcpy(ptr->data, buf);
                 prev = ptr;
                 ptr = ptr->next;
             } else {
+                blockHost(buf);
                 linkedlist_add(&hosts, buf);
             }
         }
 
         // In this case, the list got chopped off, we need to reset pointers and free the rest of our list.
-        if (ptr != NULL) {
+        if (ptr != NULL && prev != NULL) {
             prev->next = NULL;
         }
 
@@ -129,6 +135,7 @@ int update_hosts_file() {
         while (ptr != NULL) {
             prev = ptr;
             ptr = ptr->next;
+            deleteHost(prev->data);
             free(prev->data);
             free(prev);
         }
